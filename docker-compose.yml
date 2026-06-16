@@ -1,0 +1,57 @@
+# Agent Starter — full-stack litellm tool-use agent with auth.
+#
+#   cp .env.example .env   # then fill in a provider key + admin password
+#   docker compose up --build
+#
+# The frontend (nginx) is published on :8300 and proxies /api to the agent on
+# the internal docker network. The agent has no host port.
+
+services:
+  agent:
+    build:
+      context: ./agent
+    image: agent-starter-agent:latest
+    env_file: .env
+    environment:
+      MODEL: ${MODEL:-anthropic/claude-opus-4-8}
+      MAX_TOKENS: ${MAX_TOKENS:-8000}
+      REASONING_EFFORT: ${REASONING_EFFORT:-medium}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8300,http://localhost:5173,http://127.0.0.1:5173}
+      # First-admin bootstrap (created/reconciled on startup so there's always
+      # a login path). Set these in .env.
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # SQLite (users/sessions/usage/config) lives on the volume below.
+      DB_PATH: ${DB_PATH:-/data/app.db}
+      # Set true only when the app is reached exclusively over HTTPS.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    # No host port — only the frontend nginx (on the docker network) talks to it.
+    expose:
+      - "8000"
+    volumes:
+      - app-data:/data
+    networks: [app]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # The './' base produces a portable build that derives API URLs from
+      # document.baseURI, so the same image works at / or behind a subpath.
+      args:
+        VITE_ENGINE: agent
+    image: agent-starter-frontend:latest
+    depends_on:
+      - agent
+    ports:
+      - "8300:80"
+    networks: [app]
+    restart: unless-stopped
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  app-data:

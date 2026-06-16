@@ -1,0 +1,25 @@
+[project]
+name = "agent-starter"
+version = "0.1.0"
+description = "Starter backend — a litellm streaming tool-use agent with auth, per-user usage, and admin LLM config"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.12",
+    "litellm>=1.55.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "aiosqlite>=0.20.0",
+    "bcrypt>=4.2.0",
+    # Only used by app/extract.py (file-upload text extraction). Drop both if
+    # you remove the /chat/upload route.
+    "pypdf>=5.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
