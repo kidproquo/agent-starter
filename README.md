@@ -75,10 +75,15 @@ agent.example.com {
 ```
 
 Under a subpath, e.g. `https://example.com/agent/` — `handle_path` strips the `/agent`
-prefix before proxying:
+prefix before proxying. The `redir` sends the bare path to the trailing-slash form so
+`document.baseURI` ends in `/` and the SPA's relative base resolves API URLs under
+`/agent/` (without it, they'd resolve against the site root and break):
 
 ```caddyfile
 example.com {
+    # Bare path → trailing-slash form (so the SPA's relative API base is correct).
+    redir /agent /agent/ 301
+
     handle_path /agent/* {
         reverse_proxy localhost:8300
     }
