@@ -45,6 +45,89 @@ npm install && npm run dev      # http://localhost:5173, proxies /api → :8000
 
 Explore the UI with **no backend** by building the mock engine: `VITE_ENGINE=mock npm run dev`.
 
+## Deploy behind a reverse proxy
+
+`docker compose up` publishes the frontend (nginx) on `:8300`; it serves the SPA and
+proxies `/api/` to the agent on the internal network. Put a TLS-terminating reverse proxy
+in front of `:8300` to expose it on a domain.
+
+The frontend image is built with Vite `base: './'` and derives its API URL from
+`document.baseURI` (`src/lib/apiBase.ts`), so **the same image works at a root domain or
+under a subpath with no rebuild** — as long as the proxy strips the subpath prefix before
+forwarding. Two rules for any setup:
+
+- **Don't buffer** — these are SSE streams. Disable proxy buffering and use a long read
+  timeout, or responses will arrive only after the agent finishes.
+- **Subpath → strip the prefix.** Mounting at `/agent/` means the browser requests
+  `/agent/api/...`; the proxy must forward `/api/...` to `:8300` (whose nginx knows `/api/`).
+
+When serving over HTTPS, set `COOKIE_SECURE=true` in `.env` (so the session cookie gets the
+`Secure` flag), and make sure `ALLOWED_ORIGINS` includes your public origin.
+
+### Caddy
+
+Root domain (Caddy provisions TLS automatically):
+
+```caddyfile
+agent.example.com {
+    reverse_proxy localhost:8300
+}
+```
+
+Under a subpath, e.g. `https://example.com/agent/` — `handle_path` strips the `/agent`
+prefix before proxying:
+
+```caddyfile
+example.com {
+    handle_path /agent/* {
+        reverse_proxy localhost:8300
+    }
+}
+```
+
+Caddy streams SSE and sets sane proxy timeouts by default, so no extra tuning is needed.
+
+### nginx
+
+Root domain:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name agent.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/agent.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/agent.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8300;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "";
+        # SSE: stream tokens as they arrive.
+        proxy_buffering off;
+        proxy_read_timeout 3600s;
+    }
+}
+```
+
+Under a subpath, e.g. `https://example.com/agent/` — the trailing slash on `proxy_pass`
+strips the `/agent/` prefix:
+
+```nginx
+# Redirect the bare path to the trailing-slash form.
+location = /agent { return 301 /agent/; }
+
+location /agent/ {
+    proxy_pass http://127.0.0.1:8300/;   # trailing "/" strips the /agent/ prefix
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header Connection "";
+    proxy_buffering off;
+    proxy_read_timeout 3600s;
+}
+```
+
 ## Make it yours
 
 1. **Add tools.** Copy `agent/app/tools/example.py` → your module, export `*_TOOLS`
