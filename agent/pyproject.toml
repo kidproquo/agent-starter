@@ -2,6 +2,7 @@
 name = "agent-starter"
 version = "0.1.0"
 description = "Starter backend — a litellm streaming tool-use agent with auth, per-user usage, and admin LLM config"
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
