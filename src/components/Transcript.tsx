@@ -3,7 +3,7 @@ import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined'
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined'
-import { useActiveConversation, useConversationStore } from '../state/conversationStore'
+import { deriveTitle, useActiveConversation, useConversationStore } from '../state/conversationStore'
 import { Turn } from './Turn'
 import { useConverse } from '../query/useConverse'
 import { downloadReport, printReport } from '../lib/exportReport'
@@ -36,7 +36,11 @@ export function Transcript() {
 
   const handleExport = (mode: 'html' | 'pdf') => {
     if (!conversation || selectedTurns.length === 0) return
-    const inputs = { title: conversation.title, turns: selectedTurns, exportedAt: new Date() }
+    // Title the report from the first SELECTED turn, not conversation.title —
+    // the latter is derived from the first prompt, which leaks into the export
+    // even when that turn isn't selected.
+    const title = deriveTitle(selectedTurns[0].prompt)
+    const inputs = { title, turns: selectedTurns, exportedAt: new Date() }
     if (mode === 'pdf') printReport(inputs)
     else downloadReport(inputs)
     exitSelectMode()

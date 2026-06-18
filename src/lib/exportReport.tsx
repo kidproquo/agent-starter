@@ -340,6 +340,13 @@ const CSS = `
            color: #999; font-size: 0.78rem; text-align: center; line-height: 1.5; }
   @media print {
     body { background: #fff; max-width: none; }
-    section.turn { page-break-inside: avoid; }
+    /* A turn is usually taller than a page; "avoid" would push the whole
+       section to the next page and strand the header alone on page 1. Let
+       turns flow across pages, but keep atomic blocks from splitting. */
+    section.turn { break-inside: auto; page-break-inside: auto; }
+    .metric-card, .chart-container, table, .timeline, .md pre {
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    h2.prompt-h, .block-title, .chart-title { break-after: avoid; page-break-after: avoid; }
   }
 `

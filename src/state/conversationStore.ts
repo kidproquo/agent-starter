@@ -74,7 +74,7 @@ type Store = {
   abortStream(): void
 }
 
-function deriveTitle(prompt: string): string {
+export function deriveTitle(prompt: string): string {
   const trimmed = prompt.trim().replace(/\s+/g, ' ')
   return trimmed.length <= 60 ? trimmed : trimmed.slice(0, 57) + '…'
 }
