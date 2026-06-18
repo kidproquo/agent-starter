@@ -10,9 +10,38 @@ from typing import Any
 from .context import ToolContext
 
 
+def unwrap_markdown_fence(content: str) -> str:
+    """Strip a code fence that wraps the WHOLE markdown payload.
+
+    Some models wrap their markdown in a ```markdown … ``` fence when calling
+    make_markdown. react-markdown then renders that as a literal code block, so
+    the bold/lists show as raw text. We unwrap a single outer fence labelled
+    markdown/md (or an unlabelled one with no inner fences) so the content
+    renders as the markdown it actually is.
+    """
+    if not isinstance(content, str):
+        return content
+    s = content.strip()
+    if not s.startswith("```") or not s.endswith("```") or len(s) < 6:
+        return content
+    nl = s.find("\n")
+    if nl == -1:
+        return content
+    lang = s[3:nl].strip().lower()
+    inner = s[nl + 1 : -3]
+    if lang in ("markdown", "md"):
+        return inner.strip("\n")
+    # An unlabelled fence is only unwrapped when it has no inner fences — else it
+    # may be a legitimate fenced code block the author meant to show.
+    if lang == "" and "```" not in inner:
+        return inner.strip("\n")
+    return content
+
+
 async def make_markdown(ctx: ToolContext, args: dict) -> dict:
-    await ctx.emit("block", {"type": "markdown", "content": args["content"]})
-    return {"emitted": "markdown", "chars": len(args["content"])}
+    content = unwrap_markdown_fence(args["content"])
+    await ctx.emit("block", {"type": "markdown", "content": content})
+    return {"emitted": "markdown", "chars": len(content)}
 
 
 async def make_metric(ctx: ToolContext, args: dict) -> dict:
