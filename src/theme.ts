@@ -33,8 +33,10 @@ export function makeTheme(mode: ColorMode) {
           // Comfort bump for the whole type scale. Body text, captions, and
           // headings are all sized in rem, so raising the root font size scales
           // everything up uniformly without disturbing the visual hierarchy.
-          // Adjust this one value to make the UI text larger or smaller.
-          html: { fontSize: '18px' },
+          // Adjust this one value to make the UI text larger or smaller. Steps
+          // down on small screens so the desktop-tuned scale doesn't overflow a
+          // phone viewport.
+          html: { fontSize: '18px', '@media (max-width:600px)': { fontSize: '15px' } },
         },
       },
       MuiPaper: {

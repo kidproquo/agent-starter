@@ -26,14 +26,15 @@ export function LoginPage() {
   return (
     <Box
       sx={{
-        height: '100vh',
+        height: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         bgcolor: 'background.default',
+        p: 2,
       }}
     >
-      <Paper variant="outlined" sx={{ p: 4, width: 360, borderColor: 'divider' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 3, sm: 4 }, width: '100%', maxWidth: 360, borderColor: 'divider' }}>
         <Stack spacing={1} alignItems="center" sx={{ mb: 3 }}>
           <TrendingUpIcon color="primary" />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>

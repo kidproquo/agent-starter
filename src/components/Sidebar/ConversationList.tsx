@@ -38,7 +38,7 @@ function usageTooltip(u: UsageReport): string {
   return parts.join(' · ')
 }
 
-export function ConversationList() {
+export function ConversationList({ onNavigate }: { onNavigate?: () => void } = {}) {
   const conversations = useConversationStore((s) => s.conversations)
   const activeId = useConversationStore((s) => s.activeId)
   const setActive = useConversationStore((s) => s.setActive)
@@ -66,11 +66,11 @@ export function ConversationList() {
   return (
     <Stack
       sx={{
-        width: 260,
+        width: { xs: '100%', md: 260 },
         flexShrink: 0,
-        borderRight: 1,
+        borderRight: { xs: 0, md: 1 },
         borderColor: 'divider',
-        height: '100vh',
+        height: '100%',
         bgcolor: 'background.paper',
       }}
     >
@@ -88,7 +88,10 @@ export function ConversationList() {
           fullWidth
           variant="outlined"
           startIcon={<AddIcon />}
-          onClick={() => create()}
+          onClick={() => {
+            create()
+            onNavigate?.()
+          }}
           sx={{ justifyContent: 'flex-start', borderColor: 'divider' }}
         >
           New conversation
@@ -105,7 +108,10 @@ export function ConversationList() {
           <ListItemButton
             key={inv.id}
             selected={inv.id === activeId}
-            onClick={() => setActive(inv.id)}
+            onClick={() => {
+              setActive(inv.id)
+              onNavigate?.()
+            }}
             sx={{
               borderRadius: 1,
               mx: 0.5,

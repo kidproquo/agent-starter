@@ -33,6 +33,7 @@ export function Transcript() {
   const turns = conversation?.turns ?? []
   const showStreaming = streaming && (!conversation || streaming.conversationId === conversation.id)
   const selectedTurns = turns.filter((t) => selectedTurnIds.has(t.id))
+  const hasContent = turns.length > 0 || !!showStreaming
 
   const handleExport = (mode: 'html' | 'pdf') => {
     if (!conversation || selectedTurns.length === 0) return
@@ -47,7 +48,17 @@ export function Transcript() {
   }
 
   return (
-    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 4, py: 4 }}>
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        px: { xs: 1.5, sm: 4 },
+        py: { xs: 2, sm: 4 },
+      }}
+    >
       {selectMode && (
         <Paper
           variant="outlined"
@@ -60,6 +71,7 @@ export function Transcript() {
             py: 1.2,
             display: 'flex',
             alignItems: 'center',
+            flexWrap: 'wrap',
             gap: 1.5,
             borderColor: 'divider',
             bgcolor: 'background.paper',
@@ -102,31 +114,40 @@ export function Transcript() {
           </Button>
         </Paper>
       )}
-      {turns.length === 0 && !showStreaming && (
-        <EmptyState onPick={(text) => submit({ prompt: text })} disabled={isStreaming} />
+      {!hasContent && (
+        <Box sx={{ m: 'auto', width: '100%' }}>
+          <EmptyState onPick={(text) => submit({ prompt: text })} disabled={isStreaming} />
+        </Box>
       )}
-      {turns.map((t) => (
-        <Turn
-          key={t.id}
-          turn={t}
-          selectable={selectMode}
-          selected={selectedTurnIds.has(t.id)}
-          onToggleSelect={() => toggleTurnSelected(t.id)}
-        />
-      ))}
-      {showStreaming && !selectMode && (
-        <Turn
-          streaming
-          turn={{
-            id: streaming.turnId,
-            prompt: streaming.prompt,
-            trace: streaming.trace,
-            blocks: streaming.blocks,
-            metadata: streaming.metadata,
-            error: streaming.error,
-            createdAt: streaming.startedAt,
-          }}
-        />
+      {hasContent && (
+        // `mt: auto` pushes a short conversation down so it hugs the composer
+        // instead of leaving a tall empty band; when the content overflows the
+        // margin collapses and the view scrolls normally.
+        <Box sx={{ mt: 'auto' }}>
+          {turns.map((t) => (
+            <Turn
+              key={t.id}
+              turn={t}
+              selectable={selectMode}
+              selected={selectedTurnIds.has(t.id)}
+              onToggleSelect={() => toggleTurnSelected(t.id)}
+            />
+          ))}
+          {showStreaming && !selectMode && (
+            <Turn
+              streaming
+              turn={{
+                id: streaming.turnId,
+                prompt: streaming.prompt,
+                trace: streaming.trace,
+                blocks: streaming.blocks,
+                metadata: streaming.metadata,
+                error: streaming.error,
+                createdAt: streaming.startedAt,
+              }}
+            />
+          )}
+        </Box>
       )}
       <div ref={bottomRef} />
     </Box>

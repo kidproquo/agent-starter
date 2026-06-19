@@ -8,7 +8,7 @@ export default function App() {
 
   if (state.status === 'loading') {
     return (
-      <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <CircularProgress size={24} />
       </Box>
     )
