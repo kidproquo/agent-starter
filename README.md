@@ -161,7 +161,10 @@ template as its source. Requires `docker`, `rsync`, `curl`, `python3`. Pass
 2. **Set the persona.** Edit `SYSTEM_PROMPT` in `agent/app/agent.py`.
 3. **Tune render blocks.** Block types are mirrored in `src/types/blocks.ts` ↔
    `agent/app/schemas.py` — keep them in sync.
-4. **Rebrand.** App name appears in `index.html`, `src/components/LoginPage.tsx`,
-   `src/components/Sidebar/ConversationList.tsx`, and `package.json`.
+4. **Rebrand.** Easiest path is `scripts/new-project.sh` (above), which does this for
+   a fresh copy. To rename an existing checkout by hand, the app name lives in
+   `index.html`, `src/components/LoginPage.tsx`, `src/components/Sidebar/ConversationList.tsx`,
+   `src/theme.ts` (palette), `package.json`, `agent/pyproject.toml`, `agent/app/main.py`,
+   `src/lib/exportReport.tsx`, and `docker-compose.yml` (image names).
 
 See `CLAUDE.md` for architecture notes and conventions.
