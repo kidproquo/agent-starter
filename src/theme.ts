@@ -28,6 +28,15 @@ export function makeTheme(mode: ColorMode) {
     typography,
     shape: { borderRadius: 8 },
     components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          // Comfort bump for the whole type scale. Body text, captions, and
+          // headings are all sized in rem, so raising the root font size scales
+          // everything up uniformly without disturbing the visual hierarchy.
+          // Adjust this one value to make the UI text larger or smaller.
+          html: { fontSize: '18px' },
+        },
+      },
       MuiPaper: {
         styleOverrides: {
           root: {
