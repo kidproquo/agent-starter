@@ -133,6 +133,26 @@ location /agent/ {
 }
 ```
 
+## Start a new project from this template
+
+`scripts/new-project.sh` scaffolds a rebranded copy, gives it fresh git history, then
+builds, launches, and validates its Docker Compose stack:
+
+```bash
+scripts/new-project.sh \
+  --name "FamilAI" \
+  --out ~/dev/familai \
+  --primary "#7c3aed" [--secondary "#f59e0b"]
+```
+
+It copies the template (minus VCS/build artifacts), rebrands every branded string
+(UI titles, README/CLAUDE, FastAPI title, package + docker image names, export report),
+sets the MUI theme colors, and seeds `.env` from `.env.example` (override with
+`--env PATH`). It then brings the stack up on a free `8300+` port and checks `/healthz`,
+the branded frontend, and an admin login round-trip; the new project credits this
+template as its source. Requires `docker`, `rsync`, `curl`, `python3`. Pass
+`--no-validate` to stop after scaffolding.
+
 ## Make it yours
 
 1. **Add tools.** Copy `agent/app/tools/example.py` → your module, export `*_TOOLS`
