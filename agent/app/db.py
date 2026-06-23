@@ -52,6 +52,24 @@ CREATE TABLE IF NOT EXISTS config (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+-- Telegram chats linked to an account (optional Telegram chat UI). A chat binds
+-- to a user via the /link flow; one user can link several chats.
+CREATE TABLE IF NOT EXISTS telegram_chats (
+  chat_id    TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      TEXT,
+  linked_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_telegram_chats_user ON telegram_chats(user_id);
+
+-- One-time codes for the /link flow: issued in-app, redeemed by sending
+-- "/link <code>" to the bot, which binds that chat to the issuing user.
+CREATE TABLE IF NOT EXISTS telegram_link_codes (
+  code       TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TEXT NOT NULL
+);
 """
 
 

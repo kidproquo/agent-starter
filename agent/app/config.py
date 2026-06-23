@@ -42,9 +42,21 @@ class Settings(BaseSettings):
     login_max_failures: int = 8
     login_window_seconds: int = 900
 
+    # --- Telegram bot (optional chat UI) ---
+    # Create a bot with @BotFather and paste its token to enable a Telegram chat
+    # front-end for the agent. The bot long-polls (no public webhook needed); a
+    # chat links to an account via a one-time /link <code>. Leave unset to disable.
+    telegram_bot_token: str = Field(default="", validation_alias="TELEGRAM_BOT_TOKEN")
+    telegram_poll_timeout: int = 25  # long-poll getUpdates wait (seconds)
+    telegram_link_code_ttl_min: int = 15
+
     @property
     def origins(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
+
+    @property
+    def telegram_enabled(self) -> bool:
+        return bool(self.telegram_bot_token)
 
 
 settings = Settings()  # type: ignore[call-arg]

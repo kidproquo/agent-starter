@@ -14,6 +14,7 @@ from .db import close_db, init_db
 from .extract import extract_text
 from .models_meta import router as models_router
 from .schemas import PromptContext, PromptRequest
+from .telegram_bot import start_telegram_bot, stop_telegram_bot
 
 _SSE_HEADERS = {
     "Cache-Control": "no-cache, no-transform",
@@ -43,10 +44,14 @@ app.include_router(models_router)
 async def _startup() -> None:
     await init_db()
     await ensure_bootstrap_admin()
+    # Optional Telegram chat UI — starts only when a bot token is configured.
+    if settings.telegram_enabled:
+        start_telegram_bot()
 
 
 @app.on_event("shutdown")
 async def _shutdown() -> None:
+    await stop_telegram_bot()
     await close_db()
 
 

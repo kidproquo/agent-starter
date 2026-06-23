@@ -16,6 +16,8 @@ dependencies = [
     # Only used by app/extract.py (file-upload text extraction). Drop both if
     # you remove the /chat/upload route.
     "pypdf>=5.1.0",
+    # Telegram bot (app/telegram_*.py). Drop if you remove the Telegram chat UI.
+    "httpx>=0.27.0",
 ]
 
 [build-system]

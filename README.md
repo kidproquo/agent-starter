@@ -133,6 +133,27 @@ location /agent/ {
 }
 ```
 
+## Telegram bot (optional)
+
+A Telegram chat front-end for the agent — same tools, same multi-turn memory as the web UI.
+It uses **long polling** (no public webhook), so all it needs is a bot token.
+
+1. **Create a bot.** Message [@BotFather](https://t.me/BotFather) → `/newbot`, copy the token.
+2. **Configure + restart.** `echo "TELEGRAM_BOT_TOKEN=123456:ABC-..." >> .env` and restart the
+   agent. On startup it logs `telegram bot started as @yourbot`. (Unset → feature disabled.)
+3. **Link a chat.** In the app, ask the assistant to *"link telegram"* (the `link_telegram`
+   tool) → you get a one-time code. Open your bot and send `/link <code>` — that chat is now
+   bound to your account. Repeat from any chat (DM, group).
+4. **Use it.** Message the bot normally; replies are rendered (bold/lists/code/links). Send a
+   **PDF or text file** and it's extracted and read (same as `/chat/upload`). `/reset` clears a
+   chat's short-term memory.
+
+Implemented as four self-contained modules — `telegram_api.py` (HTTP + markdown→HTML),
+`telegram_links.py` (chat↔account `/link` flow), `converse.py` (drives `run_agent`, captures
+its answer as text), and `telegram_bot.py` (the long-poll worker, started from `main.py`) —
+plus a `telegram_chats`/`telegram_link_codes` table and the `link_telegram` tool. Delete those
+files + the startup hook to remove it.
+
 ## Start a new project from this template
 
 `scripts/new-project.sh` scaffolds a rebranded copy, gives it fresh git history, then

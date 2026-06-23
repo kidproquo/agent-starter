@@ -13,8 +13,10 @@ import string
 import uuid
 from datetime import datetime, timezone
 
+from ..config import settings
 from ..db import db
 from ..auth.passwords import hash_password
+from ..telegram_links import issue_link_code
 from .context import ToolContext
 
 _VALID_ROLES = ("user", "admin")
@@ -167,6 +169,21 @@ async def _other_admin_exists(exclude_id: str) -> bool:
     return await cur.fetchone() is not None
 
 
+async def link_telegram(ctx: ToolContext, _args: dict) -> dict:
+    """Issue a one-time code to connect the current user's Telegram chat."""
+    user = getattr(ctx, "user", None)
+    if user is None:
+        return {"error": "no user context"}
+    if not settings.telegram_enabled:
+        return {"error": "Telegram isn't configured on this server (no bot token set)."}
+    res = await issue_link_code(user.id)
+    return {
+        **res,
+        "instructions": f"Open the bot in Telegram and send: /link {res['code']} "
+                        f"(valid for {res['expires_min']} minutes).",
+    }
+
+
 def _tool(name: str, description: str, properties: dict, required: list[str]) -> dict:
     return {
         "type": "function",
@@ -206,6 +223,12 @@ USER_TOOLS: list[dict] = [
         {"username": {"type": "string"}},
         ["username"],
     ),
+    _tool(
+        "link_telegram",
+        "Start linking the current user's Telegram to the assistant: returns a one-time code "
+        "to send to the bot as '/link <code>'. Requires a bot token configured on the server.",
+        {}, [],
+    ),
 ]
 
 USER_HANDLERS = {
@@ -214,4 +237,5 @@ USER_HANDLERS = {
     "set_user_role": set_user_role,
     "reset_user_password": reset_user_password,
     "delete_user": delete_user,
+    "link_telegram": link_telegram,
 }
