@@ -86,7 +86,19 @@ async def handle_update(update: dict) -> None:
     photos = msg.get("photo") or []
 
     if text.startswith("/start"):
-        await _reply(chat_id, _GREETING)
+        # Deep link from the QR (t.me/<bot>?start=<code>) arrives as "/start <code>".
+        parts = text.split(maxsplit=1)
+        payload = parts[1].strip() if len(parts) > 1 else ""
+        if payload:
+            title = chat.get("title") or chat.get("username") or chat.get("first_name")
+            user_id = await redeem_code(payload, chat_id, title)
+            await _reply(
+                chat_id,
+                "✅ Linked! This chat is now connected — ask me anything." if user_id
+                else "That link is invalid or expired — get a fresh QR/code in the app.",
+            )
+        else:
+            await _reply(chat_id, _GREETING)
         return
     if text.startswith("/link"):
         parts = text.split(maxsplit=1)

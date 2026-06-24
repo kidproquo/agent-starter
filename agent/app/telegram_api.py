@@ -145,3 +145,35 @@ async def get_me() -> dict | None:
         return data.get("result") if data.get("ok") else None
     except Exception:  # noqa: BLE001
         return None
+
+
+_bot_username: str | None = None
+
+
+async def bot_username() -> str | None:
+    """The bot's @username (cached). Needed to build t.me/<bot>?start=<code> links."""
+    global _bot_username
+    if _bot_username is None:
+        me = await get_me()
+        if me:
+            _bot_username = me.get("username")
+    return _bot_username
+
+
+def _qr_data_uri(data: str) -> str | None:
+    """A PNG data: URI of `data` as a QR code, or None if segno is unavailable."""
+    try:
+        import segno
+    except ImportError:
+        return None
+    return segno.make(data, error="m").png_data_uri(scale=5, border=2)
+
+
+async def deep_link_and_qr(code: str) -> tuple[str | None, str | None]:
+    """Build the t.me deep link for a /link code and a QR image data URI for it.
+    Either may be None (no bot username / no QR lib), so callers fall back to the code."""
+    username = await bot_username()
+    if not username:
+        return None, None
+    link = f"https://t.me/{username}?start={code}"
+    return link, _qr_data_uri(link)

@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from ..config import settings
 from ..db import db
 from ..auth.passwords import hash_password
+from ..telegram_api import deep_link_and_qr
 from ..telegram_links import issue_link_code
 from .context import ToolContext
 
@@ -170,13 +171,28 @@ async def _other_admin_exists(exclude_id: str) -> bool:
 
 
 async def link_telegram(ctx: ToolContext, _args: dict) -> dict:
-    """Issue a one-time code to connect the current user's Telegram chat."""
+    """Issue a one-time code to connect the current user's Telegram chat, shown
+    as a scannable QR (deep link) plus a manual code."""
     user = getattr(ctx, "user", None)
     if user is None:
         return {"error": "no user context"}
     if not settings.telegram_enabled:
         return {"error": "Telegram isn't configured on this server (no bot token set)."}
     res = await issue_link_code(user.id)
+    link, qr = await deep_link_and_qr(res["code"])
+    if link and qr:
+        # Emit the QR directly so the agent never has to copy the long data URI.
+        await ctx.emit("block", {
+            "type": "markdown",
+            "content": (
+                f"**Link Telegram**\n\nScan this with your phone's camera to connect:\n\n"
+                f"![Scan to link Telegram]({qr})\n\n"
+                f"…or open [this link]({link}) on your phone, or send `/link {res['code']}` to the "
+                f"bot. The code expires in {res['expires_min']} minutes."
+            ),
+        })
+        return {"emitted": "qr", "code": res["code"], "link_url": link,
+                "note": "A QR code + link were shown to the user. Briefly confirm and tell them to scan it."}
     return {
         **res,
         "instructions": f"Open the bot in Telegram and send: /link {res['code']} "

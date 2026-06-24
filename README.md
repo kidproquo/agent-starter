@@ -142,8 +142,8 @@ It uses **long polling** (no public webhook), so all it needs is a bot token.
 2. **Configure + restart.** `echo "TELEGRAM_BOT_TOKEN=123456:ABC-..." >> .env` and restart the
    agent. On startup it logs `telegram bot started as @yourbot`. (Unset → feature disabled.)
 3. **Link a chat.** In the app, ask the assistant to *"link telegram"* (the `link_telegram`
-   tool) → you get a one-time code. Open your bot and send `/link <code>` — that chat is now
-   bound to your account. Repeat from any chat (DM, group).
+   tool) → it shows a **QR code**. Scan it with your phone to open the bot and link instantly
+   (deep link → `/start <code>`), or send `/link <code>` manually. Repeat from any chat (DM, group).
 4. **Use it.** Message the bot normally; replies are rendered (bold/lists/code/links). Send a
    **PDF or text file** and it's extracted and read (same as `/chat/upload`). `/reset` clears a
    chat's short-term memory.
